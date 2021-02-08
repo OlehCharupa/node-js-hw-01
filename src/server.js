@@ -4,15 +4,17 @@ const morgan = require("morgan")
 const cors = require("cors")
 const dotenv = require("dotenv")
 const contactsContacts = require("./routers/contactRouters.js")
+const mongoose = require("mongoose");
 
 
 module.exports = class ContactsServer {
     constructor() {
         this.server = null
     };
-    start() {
+    async start() {
         this.initServer()
         this.initConfig()
+        await this.initDatabase()
         this.initMiddlewares()
         this.initRoutes()
         this.initErrorHandling()
@@ -23,6 +25,21 @@ module.exports = class ContactsServer {
     }
     initConfig() {
         dotenv.config({ path: path.join(__dirname, "../.env") });
+    }
+    async initDatabase() {
+        try {
+            const { MONGO_URL } = process.env;
+            await mongoose.connect(MONGO_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+                useCreateIndex: true
+            });
+            console.log("Database connection successful");
+        } catch (arror) {
+            console.log(error);
+            process.exit(1);
+        }
     }
     initMiddlewares() {
         this.server.use(cors())

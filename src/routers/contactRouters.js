@@ -1,31 +1,31 @@
 const { Router } = require("express")
 const router = Router()
-const ContactFunction = require("../contactfuntions/contactFunction.js")
+const { listContacts, getById, addContact, updateContact, removeContact } = require("../contactfuntions/contact.controller.js")
 const ValidateContacts = require("../helpers/validate.js")
 
-router.get("/", ContactFunction.listContacts);
+router.get("/", listContacts);
 
 router.get(
     "/:id",
     ValidateContacts.validateContactId,
-    ContactFunction.getById
+    getById
 );
 
 router.post(
     "/",
     ValidateContacts.validateNewContact,
-    ContactFunction.addContact
+    addContact
 );
 router.delete(
     "/:id",
     ValidateContacts.validateContactId,
-    ContactFunction.removeContact
+    removeContact
 );
 router.patch(
     "/:id",
     ValidateContacts.validateUpdateContact,
     ValidateContacts.validateContactId,
-    ContactFunction.updateContact
+    updateContact
 );
 
 module.exports = router;
