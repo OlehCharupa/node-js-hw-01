@@ -1,5 +1,5 @@
-const Joi = require("joi")
-const contacts = require("../db/contacts.json")
+const Joi = require("joi");
+const { Types: { ObjectId } } = require("mongoose");
 
 class ValidateContacts {
     validateNewContact(req, res, next) {
@@ -7,10 +7,12 @@ class ValidateContacts {
             name: Joi.string().required(),
             email: Joi.string().required(),
             phone: Joi.string().required(),
+            subscription: Joi.string(),
+            password: Joi.string().required()
         });
         const validationResult = validationRules.validate(req.body);
         if (validationResult.error) {
-            return res.status(400).send({"message" : "missing required name field"});
+            return res.status(400).send({ "message": "missing required name field" });
         }
         next();
     }
@@ -22,16 +24,14 @@ class ValidateContacts {
         }).or("name", "email", "phone");
         const validationResult = validationRules.validate(req.body);
         if (validationResult.error) {
-            return res.status(400).send({"message" : "missing fields"});
+            return res.status(400).send({ "message": "missing fields" });
         }
         next();
     }
     validateContactId = (req, res, next) => {
         const { id } = req.params;
-        const contactId = parseInt(id)
-        const contactIndex = contacts.findIndex(({ id }) => id === contactId)
-        if (contactIndex === -1) {
-            return res.status(404).send({"message" : "contact not found"});
+        if (!ObjectId.isValid(id)) {
+            return res.status(404).send("ID is not found");
         }
         next();
     }
