@@ -5,7 +5,8 @@ const cors = require("cors")
 const dotenv = require("dotenv")
 const contactsContacts = require("./routers/contactRouters.js")
 const mongoose = require("mongoose");
-
+const userRouter = require("./routers/user.router.js")
+const cookieParser = require("cookie-parser")
 
 module.exports = class ContactsServer {
     constructor() {
@@ -45,13 +46,16 @@ module.exports = class ContactsServer {
         this.server.use(cors())
         this.server.use(express.json())
         this.server.use(morgan("dev"))
+        this.server.use(cookieParser(process.env.COOKIE_SECRET))
     }
     initRoutes() {
         this.server.use('/contacts', contactsContacts)
+        this.server.use('/', userRouter)
     }
     initErrorHandling() {
         this.server.use((err, req, res, next) => {
             const statusCode = err.status || 500;
+            console.log(err);
             res.status(statusCode).send(err.message);
         });
     }
