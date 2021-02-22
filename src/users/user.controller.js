@@ -1,5 +1,4 @@
 const { Types: { ObjectId } } = require("mongoose");
-// const Joi = require("joi");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const userModel = require("./user.model.js");
@@ -34,21 +33,35 @@ async function signIn(credentials) {
     const token = jwt.sign({ userId: user._id },
         process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRESIN }
     );
-    return { user, token }
+    const updateUser = await userModel.findByIdAndUpdate(
+        user._id,
+        { token },
+        { new: true }
+    )
+    return { token, updateUser }
 }
 
 async function currentUser(userId) {
-    return await userModel.findById(userId)
+    const user = await userModel.findById(userId)
+    return user
 }
 
-// async function logOut(userParams) {
-//     const token = userParams.signedCookies
-//     return token
-// }
+async function logOut(userId) {
+    const user = await userModel.findById(userId)
+    if (!user) {
+        throw new Unauthorized(`Not authorized`)
+    }
+    const updateUser = await userModel.findByIdAndUpdate(
+        user._id,
+        { token: null },
+        { new: true }
+    )
+    return updateUser
+}
 
 module.exports = {
     currentUser,
-    // logOut,
+    logOut,
     signUp,
     signIn,
 };

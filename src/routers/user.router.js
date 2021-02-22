@@ -5,7 +5,7 @@ const asyncWrapper = require("../helpers/asyncWrapper.js");
 const validate = require("../helpers/validateHelpers.js");
 const composeUsers = require("../users/users.serializer.js")
 const { currentUser,
-    // logOut,
+    logOut,
     signUp,
     signIn } = require("../users/user.controller.js");
 const authorize = require("../helpers/authorize.js")
@@ -26,10 +26,11 @@ userRouter.post("/auth/register",
 userRouter.post("/auth/login",
     validate(validationRules),
     asyncWrapper(async (req, res) => {
-        const { user, token } = await signIn(req.body)
-        res.cookie("token", token, { httpOnly: true, signed: true })
+        const { updateUser, token } = await signIn(req.body)
+        req.token = token
         return res.status(201).send({
-            user: composeUsers(user),
+            user: composeUsers(updateUser),
+            token
         })
     })
 );
@@ -37,15 +38,15 @@ userRouter.post("/auth/login",
 userRouter.get("/users/current",
     authorize,
     asyncWrapper(async (req, res) => {
-        const user = await currentUser(req.userId)
-        res.send(composeUsers(user))
+        const user = await currentUser(req.user)
+        res.send({ user: composeUsers(user), token: user.token })
     })
 );
 userRouter.post("/auth/logout",
     authorize,
     asyncWrapper(async (req, res) => {
-        //  const token = await logOut(req)
-        res.clearCookie("token").status(204).send("No Content")
+        await logOut(req.user._id)
+        res.status(204).json({ "massage": "No Content" })
     })
 );
 
