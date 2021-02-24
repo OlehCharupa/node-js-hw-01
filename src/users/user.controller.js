@@ -1,8 +1,11 @@
 const { Types: { ObjectId } } = require("mongoose");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path")
+const fs = require("fs").promises
 const userModel = require("./user.model.js");
 const { Conflict, Unauthorized, NotFound, Forbidden } = require("../helpers/error.constructors.js")
+const avatarNewUser = require("../helpers/avatarGenerator.js")
 
 
 async function signUp(userParams) {
@@ -13,7 +16,9 @@ async function signUp(userParams) {
     }
     const saltRounds = parseInt(process.env.SALT_ROUNDS)
     const hashedPassword = await bcryptjs.hash(password, saltRounds);
+    const avatarUrl = await avatarNewUser()
     const newUser = await userModel.create({
+        avatarUrl,
         email,
         password: hashedPassword,
     });
@@ -41,10 +46,6 @@ async function signIn(credentials) {
     return { token, updateUser }
 }
 
-async function currentUser(userId) {
-    const user = await userModel.findById(userId)
-    return user
-}
 
 async function logOut(userId) {
     const user = await userModel.findById(userId)
@@ -59,9 +60,27 @@ async function logOut(userId) {
     return updateUser
 }
 
+async function currentUser(userId) {
+    const user = await userModel.findById(userId)
+    return user
+}
+
+async function updateAvatar(req) {
+    console.log(req);
+    const fileName = req.file.filename
+    const newAvatarUrl = `http://localhost:${process.env.PORT}/images/${fileName}`
+    const updateUser = await userModel.findByIdAndUpdate(
+        req.user._id,
+        { avatarUrl: newAvatarUrl },
+        { new: true }
+    )
+    return updateUser
+}
+
 module.exports = {
     currentUser,
     logOut,
     signUp,
     signIn,
+    updateAvatar
 };
