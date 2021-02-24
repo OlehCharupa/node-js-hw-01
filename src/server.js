@@ -51,6 +51,7 @@ module.exports = class ContactsServer {
     initRoutes() {
         this.server.use('/contacts', contactsContacts)
         this.server.use('/', userRouter)
+        this.server.use("/images", express.static(path.join(__dirname + "../../public/images")))
     }
     initErrorHandling() {
         this.server.use((err, req, res, next) => {
