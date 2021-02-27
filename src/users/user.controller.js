@@ -1,11 +1,11 @@
 const { Types: { ObjectId } } = require("mongoose");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const path = require("path")
-const fs = require("fs").promises
 const userModel = require("./user.model.js");
 const { Conflict, Unauthorized, NotFound, Forbidden } = require("../helpers/error.constructors.js")
 const avatarNewUser = require("../helpers/avatarGenerator.js")
+const MailingHelper = require("../helpers/email.js");
+const USER_STATUSES = require("./userStatuses.js");
 
 
 async function signUp(userParams) {
@@ -22,6 +22,8 @@ async function signUp(userParams) {
         email,
         password: hashedPassword,
     });
+    await MailingHelper.sendVerificationEmail(newUser)
+
     return newUser
 }
 
@@ -66,7 +68,6 @@ async function currentUser(userId) {
 }
 
 async function updateAvatar(req) {
-    console.log(req);
     const fileName = req.file.filename
     const newAvatarUrl = `http://localhost:${process.env.PORT}/images/${fileName}`
     const updateUser = await userModel.findByIdAndUpdate(
@@ -76,11 +77,24 @@ async function updateAvatar(req) {
     )
     return updateUser
 }
+async function verifyEmail(verificationToken) {
+    const updateResult = await userModel.updateOne({ verificationToken },
+        {
+            status: USER_STATUSES.VERIFIED,
+            verificationToken: null
+        },
+        { new: true })
+    if (!updateResult.nModified) {
+        throw new NotFound(`User not found by verification token '${verificationToken}'`)
+    }
+}
+
 
 module.exports = {
     currentUser,
     logOut,
     signUp,
     signIn,
-    updateAvatar
+    updateAvatar,
+    verifyEmail
 };

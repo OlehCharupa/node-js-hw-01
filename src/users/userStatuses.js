@@ -1,0 +1,6 @@
+const USER_STATUSES = {
+    CREATED: "CREATED",
+    VERIFIED: "VERIFIED"
+}
+
+module.exports = USER_STATUSES

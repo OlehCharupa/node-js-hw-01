@@ -2,6 +2,7 @@ const express = require("express")
 const path = require("path")
 const morgan = require("morgan")
 const cors = require("cors")
+const sgMail = require('@sendgrid/mail')
 const dotenv = require("dotenv")
 const contactsContacts = require("./routers/contactRouters.js")
 const mongoose = require("mongoose");
@@ -26,6 +27,7 @@ module.exports = class ContactsServer {
     }
     initConfig() {
         dotenv.config({ path: path.join(__dirname, "../.env") });
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY)
     }
     async initDatabase() {
         try {

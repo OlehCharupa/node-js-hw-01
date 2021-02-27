@@ -7,10 +7,7 @@ const Jimp = require("jimp");
 const asyncWrapper = require("../helpers/asyncWrapper.js");
 const validate = require("../helpers/validateHelpers.js");
 const composeUsers = require("../users/users.serializer.js")
-const { currentUser,
-    logOut,
-    signUp,
-    signIn, updateAvatar } = require("../users/user.controller.js");
+const { currentUser, logOut, signUp, signIn, updateAvatar, verifyEmail } = require("../users/user.controller.js");
 const authorize = require("../helpers/authorize.js")
 const multer = require('multer')
 const DRAFT_DIR = path.join(__dirname, '../../tmp')
@@ -23,7 +20,6 @@ const storage = multer.diskStorage({
     },
 });
 const upload = multer({ storage });
-// const upload = multer({ dest: 'tmp', })
 async function compressAvatar(req, res, next) {
     try {
         const { path: filePath, filename } = req.file;
@@ -47,7 +43,6 @@ userRouter.post("/auth/register",
     validate(validationRules),
     asyncWrapper(async (req, res) => {
         const newUser = await signUp(req.body)
-        console.log('newUserRoute', newUser);
         res.status(201).send(composeUsers(newUser))
     }),
 );
@@ -82,7 +77,11 @@ userRouter.patch("/users/avatars",
     upload.single('avatar'), compressAvatar,
     asyncWrapper(async (req, res) => {
         const user = await updateAvatar(req)
-        res.send({ avatarUrl: user.avatarUrl })        // console.log(result);
+        res.send({ avatarUrl: user.avatarUrl })
     })
 )
+userRouter.get('/auth/verify', asyncWrapper(async (req, res) => {
+    await verifyEmail(req.query.verificationToken)
+    res.status(200).send('email successfully verified')
+}))
 module.exports = userRouter;

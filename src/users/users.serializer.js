@@ -9,7 +9,8 @@ function composeUser(user) {
         avatarUrl: user.avatarUrl,
         id: user.id,
         email: user.email,
-        subscription: user.subscription
+        subscription: user.subscription,
+        status: user.status
     }
 }
 
